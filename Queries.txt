@@ -1,0 +1,97 @@
+/* Which countries have the most Invoices? */
+SELECT BillingCountry , COUNT(InvoiceId) Invoice
+FROM Invoice 
+GROUP BY 1
+ORDER BY 2 DESC ;
+
+
+/*  Which city has the best customers? */
+SELECT city , SUM(i.total) FROM Customer c
+JOIN Invoice i
+ON c.CustomerId =i.CustomerId
+GROUP BY 1 
+ORDER BY 2 DESC
+LIMIT 1 ;
+
+
+/*  Who is the best customer? */
+SELECT c.CustomerId, FirstName , LastName , SUM(i.Total) 
+FROM Customer c
+JOIN Invoice i
+ON c.CustomerId = i.CustomerId
+GROUP BY 1
+ORDER BY 4 DESC 
+LIMIT 1; 
+
+
+/*  Use your query to return the email, first name, last name, and Genre of all Rock Music listeners (Rock & Roll would be considered a different category for this exercise). Return your list ordered alphabetically by email address starting with A */
+SELECT email , FirstName , LastName , g.Name 
+FROM Customer c
+JOIN Invoice i
+ON i.CustomerId =c.CustomerId
+JOIN InvoiceLine il
+ON il.InvoiceId=i.InvoiceId
+JOIN Track t
+ON t.TrackId=il.TrackId
+JOIN Genre g
+ON t.GenreId=g.GenreId
+WHERE g.Name ='Rock'
+GROUP BY 1 ;
+
+
+/* Who is writing the rock music? */
+SELECT a.ArtistId,a.Name ,COUNT(g.Name)
+FROM Artist a
+JOIN Album al
+ON al.ArtistId =a.ArtistId
+JOIN  Track t
+ON t.AlbumId=al.AlbumId
+JOIN  Genre g
+ON g.GenreId=t.GenreId
+WHERE g.name='Rock'
+GROUP BY 2
+ORDER BY 3 DESC
+LIMIT 10;
+
+/* which artist has earned the most according to the InvoiceLines? and  use this artist to find which customer spent the most on this artist. */
+WITH t1 AS (SELECT a.ArtistId,a.Name ,SUM(il.UnitPrice)
+FROM Artist a
+JOIN Album al
+ON al.ArtistId =a.ArtistId
+JOIN  Track t
+ON t.AlbumId=al.AlbumId
+JOIN  InvoiceLine il
+ON il.TrackId=t.TrackId
+GROUP BY 1
+ORDER BY 3 DESC
+LIMIT 1)
+SELECT c.CustomerId,c.FirstName,c.LastName ,t11.Name ArtistName, SUM(il.Quantity * il.UnitPrice) Amount from Customer c
+JOIN Invoice i
+ON i.CustomerId =c.CustomerId
+JOIN  InvoiceLine il
+ON il.InvoiceId=i.InvoiceId
+JOIN  Track t
+ON il.TrackId=t.TrackId
+JOIN Album al
+ON al.AlbumId =t.AlbumId
+JOIN Artist art
+ON al.ArtistId =art.ArtistId
+JOIN t1 t11
+ON t11.ArtistId =art.ArtistId
+WHERE art.Name=t11.Name
+GROUP BY 1
+ORDER By 5 DESC
+LIMIT 1
+;
+
+
+/* Write a query that determines the customer that has spent the most on music for each country. Write a query that returns the country along with the top customer and how much they spent. For countries where the top amount spent is shared, provide all customers who spent this amount. */
+select c.CustomerId,c.Country,c.FirstName,c.LastName,SUM(i.Total) from Customer c
+JOIN Invoice i
+ON i.CustomerId=c.CustomerId
+Group By 2
+;
+
+
+
+
